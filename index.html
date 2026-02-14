@@ -1,42 +1,73 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<title>Employee Validation</title>
+<meta charset="UTF-8">
+<title>Employee Document Info</title>
+<style>
+body { font-family: Arial, sans-serif; margin: 20px; }
+h2 { color: #333; }
+input, button { padding: 8px 12px; margin-right: 10px; font-size: 14px; }
+button { cursor: pointer; }
+table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+th { background-color: #f2f2f2; }
+tr:hover { background-color: #f9f9f9; }
+</style>
 </head>
 <body>
 
-<h2>Employee Validation</h2>
+<h2>Employee Document Information</h2>
 
-<input type="text" id="empno" placeholder="Enter Employee Number">
-<button onclick="validate()">Validate</button>
+<input id="empNumber" placeholder="Enter Employee Number" />
+<button onclick="fetchEmployee()">Get Info</button>
 
-<p id="result"></p>
+<div id="result"></div>
 
 <script>
-function validate() {
-    var empno = document.getElementById("empno").value;
+async function fetchEmployee() {
+    const empId = document.getElementById('empNumber').value.trim();
+    if(!empId) { 
+        alert("Please enter an employee number."); 
+        return; 
+    }
 
-    fetch("https://spimacos-my.sharepoint.com/:x:/g/personal/mohammed_insaf_spimaco_sa/IQC5CMtE7KyZQZLjfux9GcVSAWLCGR38nU7ImYznYe06u54?e=7VfS4U", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ empno: empno })
-    })
-    .then(response => response.json())
-    .then(data => {
-        document.getElementById("result").innerHTML =
-            "Name: " + data.Name + "<br>" +
-            "Department: " + data.Department + "<br>" +
-            "Status: " + data.Status;
-    })
-    .catch(error => {
-        document.getElementById("result").innerHTML = "Employee Not Found";
-    });
+    const url = `https://awjcftest.it-cpi018-rt.cfapps.eu10-003.hana.ondemand.com/http/empDocValidation?empId=${empId}`;
+
+    document.getElementById('result').innerHTML = "Loading...";
+
+    try {
+        const res = await fetch(url);
+        if(!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
+        const data = await res.json();
+
+        if(!data || data.length === 0) {
+            document.getElementById('result').innerHTML = "No record found.";
+            return;
+        }
+
+        // Select only key fields
+        const keys = ["externalCode", "cust_AddressENG", "cust_AddressArabic", "cust_Remark", "cust_DocumentName_HR"];
+
+        // Build table header
+        let table = '<table><tr>';
+        keys.forEach(k => table += `<th>${k}</th>`);
+        table += '</tr>';
+
+        // Build table rows
+        data.forEach(row => {
+            table += '<tr>';
+            keys.forEach(k => table += `<td>${row[k] || ""}</td>`);
+            table += '</tr>';
+        });
+        table += '</table>';
+
+        document.getElementById('result').innerHTML = table;
+
+    } catch(err) {
+        document.getElementById('result').innerHTML = "Error: " + err;
+    }
 }
 </script>
 
 </body>
 </html>
-
-
