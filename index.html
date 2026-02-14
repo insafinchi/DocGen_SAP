@@ -26,48 +26,51 @@ tr:hover { background-color: #f9f9f9; }
 <script>
 async function fetchEmployee() {
     const empId = document.getElementById('empNumber').value.trim();
-    if(!empId) { 
-        alert("Please enter an employee number."); 
-        return; 
+    if (!empId) {
+        alert("Please enter an employee number.");
+        return;
     }
 
-    const url = `https://awjcftest.it-cpi018-rt.cfapps.eu10-003.hana.ondemand.com/http/empDocValidation?empId=${empId}`;
-
+    const url = `http://localhost:3000/emp?empId=${empId}`;
     document.getElementById('result').innerHTML = "Loading...";
 
     try {
         const res = await fetch(url);
-        if(!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
-        const data = await res.json();
+        if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
 
-        if(!data || data.length === 0) {
+        const data = await res.json(); // <-- IMPORTANT
+
+        if (!data || data.length === 0) {
             document.getElementById('result').innerHTML = "No record found.";
             return;
         }
 
-        // Select only key fields
+        // Select key fields to show
         const keys = ["externalCode", "cust_AddressENG", "cust_AddressArabic", "cust_Remark", "cust_DocumentName_HR"];
 
         // Build table header
-        let table = '<table><tr>';
+        let table = "<table><tr>";
         keys.forEach(k => table += `<th>${k}</th>`);
-        table += '</tr>';
+        table += "</tr>";
 
         // Build table rows
         data.forEach(row => {
-            table += '<tr>';
+            table += "<tr>";
             keys.forEach(k => table += `<td>${row[k] || ""}</td>`);
-            table += '</tr>';
+            table += "</tr>";
         });
-        table += '</table>';
+        table += "</table>";
 
-        document.getElementById('result').innerHTML = table;
+        document.getElementById("result").innerHTML = table;
 
-    } catch(err) {
-        document.getElementById('result').innerHTML = "Error: " + err;
+    } catch (err) {
+        document.getElementById("result").innerHTML = "Error: " + err.message;
     }
 }
 </script>
+
+
+
 
 </body>
 </html>
